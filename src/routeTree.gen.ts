@@ -11,17 +11,10 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as PollsImport } from './routes/polls'
 import { Route as IndexImport } from './routes/index'
 import { Route as PollPollIdImport } from './routes/poll/$pollId'
 
 // Create/Update Routes
-
-const PollsRoute = PollsImport.update({
-  id: '/polls',
-  path: '/polls',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -46,13 +39,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
-    '/polls': {
-      id: '/polls'
-      path: '/polls'
-      fullPath: '/polls'
-      preLoaderRoute: typeof PollsImport
-      parentRoute: typeof rootRoute
-    }
     '/poll/$pollId': {
       id: '/poll/$pollId'
       path: '/poll/$pollId'
@@ -67,41 +53,36 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/polls': typeof PollsRoute
   '/poll/$pollId': typeof PollPollIdRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/polls': typeof PollsRoute
   '/poll/$pollId': typeof PollPollIdRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/polls': typeof PollsRoute
   '/poll/$pollId': typeof PollPollIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/polls' | '/poll/$pollId'
+  fullPaths: '/' | '/poll/$pollId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/polls' | '/poll/$pollId'
-  id: '__root__' | '/' | '/polls' | '/poll/$pollId'
+  to: '/' | '/poll/$pollId'
+  id: '__root__' | '/' | '/poll/$pollId'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PollsRoute: typeof PollsRoute
   PollPollIdRoute: typeof PollPollIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PollsRoute: PollsRoute,
   PollPollIdRoute: PollPollIdRoute,
 }
 
@@ -116,15 +97,11 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/polls",
         "/poll/$pollId"
       ]
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/polls": {
-      "filePath": "polls.tsx"
     },
     "/poll/$pollId": {
       "filePath": "poll/$pollId.tsx"

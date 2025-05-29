@@ -37,7 +37,15 @@ export default function PollDetail() {
 
   // 2) Loading state
   if (question === null && error === null) {
-    return <div>Loading question…</div>
+    return (
+      <div className="text-center">
+        <header className="min-h-screen flex flex-col items-center justify-center space-y-10 bg-[#121316] text-white text-[calc(10px+2vmin)]">
+          <div className="w-3/4 sm:w-1/2 md:max-w-[400px] space-y-16">
+            <h1 className="text-2xl font-bold mb-4">Loading...</h1>
+          </div>
+        </header>
+      </div>
+    )
   }
 
   // 3) Error state
@@ -47,9 +55,12 @@ export default function PollDetail() {
 
   // 4) Success state
   return (
-    <div style={{ padding: 20, fontFamily: 'sans-serif' }}>
-      <h1 className="text-2xl font-bold mb-4">{question}</h1>
-      {/* Later you’ll render options + vote buttons here */}
+    <div className="text-center">
+      <header className="min-h-screen flex flex-col items-center justify-center space-y-10 bg-[#121316] text-white text-[calc(10px+2vmin)]">
+        <div className="w-3/4 sm:w-1/2 md:max-w-[400px] space-y-16">
+          <h1 className="text-2xl font-bold mb-4">{question}</h1>
+        </div>
+      </header>
     </div>
   )
 }
