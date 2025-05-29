@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3000",
+    "dev:client": "vite",
+    "dev:functions": "vercel dev --listen 3001",
+    "dev": "concurrently \"npm run dev:client\" \"npm run dev:functions\"",
     "start": "vite --port 3000",
     "build": "vite build && tsc",
     "serve": "vite preview",
@@ -35,6 +37,7 @@
     "@types/react-dom": "^19.0.3",
     "@vercel/node": "^5.1.16",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
     "jsdom": "^26.0.0",
     "prettier": "^3.5.3",
     "typescript": "^5.7.2",

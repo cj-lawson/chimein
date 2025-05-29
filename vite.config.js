@@ -12,6 +12,18 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
   ],
+
+  server: {
+    port: 3000, // your React app
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001', // where vercel dev will run
+        changeOrigin: true,
+        rewrite: (path) => path, // keep /api/... intact
+      },
+    },
+  },
+
   test: {
     globals: true,
     environment: 'jsdom',
