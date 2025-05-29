@@ -3,6 +3,9 @@
     "**/*.ts",
     "**/*.tsx",
     "**/**/*.ts",
+    "**/**/**/*.ts",
+    "**/**/**/**/*.ts",
+    "**/**/**/**/**/*.ts",
     "eslint.config.js",
     "prettier.config.js",
     "vite.config.js"

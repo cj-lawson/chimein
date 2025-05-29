@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
+
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import toast, { Toaster } from 'react-hot-toast'
+import PollDetail from '@/pages/PollDetail'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -107,7 +109,7 @@ function App() {
 
             {pollId && (
               <p style={{ marginTop: 16 }}>
-                ✅ Poll created! ID: <code>{pollId}</code>
+                <a href={`/poll/${pollId}`}>👀 View your poll</a>
               </p>
             )}
           </div>
