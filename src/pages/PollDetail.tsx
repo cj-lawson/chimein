@@ -1,7 +1,7 @@
 // src/pages/PollDetail.tsx
 import { useState, useEffect } from 'react'
 import { Route as PollRoute } from '@/routes/poll/$pollId'
-import { useParams } from '@tanstack/react-router'
+// import { useParams } from '@tanstack/react-router'
 
 export default function PollDetail() {
   const { pollId } = PollRoute.useParams()

@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import toast, { Toaster } from 'react-hot-toast'
-import PollDetail from '@/pages/PollDetail'
+// import PollDetail from '@/pages/PollDetail'
 
 export const Route = createFileRoute('/')({
   component: App,
