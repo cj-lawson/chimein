@@ -1,4 +1,3 @@
-// api/getPoll.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Redis } from '@upstash/redis'
 
@@ -19,10 +18,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const meta = await redis.hgetall(`poll:${id}`)
+
   if (!meta?.question) {
     return res.status(404).json({ error: 'Poll not found' })
   }
 
   // Only return the question for now
-  return res.status(200).json({ question: meta.question })
+  return res
+    .status(200)
+    .json({ question: meta.question, options: meta.options })
 }

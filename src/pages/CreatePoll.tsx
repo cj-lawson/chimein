@@ -65,7 +65,7 @@ export default function CreatePoll() {
             </div>
             <div className="options space-y-4">
               {options.map((option, index) => (
-                <div className="flex gap-2">
+                <div className="relative">
                   <input
                     key={index}
                     type={option.type}
@@ -78,7 +78,7 @@ export default function CreatePoll() {
                     onClick={() => handleRemoveOption(option.id)}
                     className="flex items-center gap-4 ml-auto cursor-pointer"
                   >
-                    <XMarkIcon className="size-6" />
+                    <XMarkIcon className="size-6 absolute top-1/2 transform -translate-y-1/2 ml-2" />
                   </button>
                 </div>
               ))}

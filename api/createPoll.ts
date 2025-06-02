@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     question?: string
     options?: Array<[Option]>
   }
-  console.log(options)
+
   if (!question) {
     return res.status(400).json({ error: "Missing 'question' field" })
   }
