@@ -9,8 +9,8 @@ export default function CreatePoll() {
   const [pollId, setPollId] = useState<string | null>(null)
 
   const [options, setOptions] = useState([
-    { id: 1, value: '', type: 'text' },
-    { id: 2, value: '', type: 'text' },
+    { id: 1, value: '', type: 'text', count: 0 },
+    { id: 2, value: '', type: 'text', count: 0 },
   ])
 
   const handleOptionChange = (index: number, value: string) => {
@@ -27,7 +27,7 @@ export default function CreatePoll() {
     }
 
     const newId = options.length > 0 ? options[options.length - 1].id + 1 : 1
-    setOptions([...options, { id: newId, value: '', type: 'text' }])
+    setOptions([...options, { id: newId, value: '', type: 'text', count: 0 }])
   }
 
   const handleRemoveOption = (id: number) => {

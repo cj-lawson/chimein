@@ -2,14 +2,21 @@ import { useState, useEffect } from 'react'
 import { Route as PollRoute } from '@/routes/poll/$pollId'
 
 type Option = {
-  text: any
-  id: number
+  optionId: string
+  option: OptionValues
+}
+
+type OptionValues = {
+  id: string
+  type: 'text'
+  value: string
+  count: number
 }
 
 export default function PollDetail() {
   const { pollId } = PollRoute.useParams()
   const [question, setQuestion] = useState<string | null>(null)
-  const [options, setOptions] = useState<Array<Option> | null>([])
+  const [options, setOptions] = useState<Array<Option>>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -17,7 +24,7 @@ export default function PollDetail() {
 
     // reset states on pollId change
     setQuestion(null)
-    setOptions(null)
+    setOptions([])
     setError(null)
 
     fetch(`/api/getPoll?id=${pollId}`)
@@ -40,6 +47,56 @@ export default function PollDetail() {
     return <div>Invalid poll ID.</div>
   }
 
+  function handleVote(optionId: string) {
+    // 1) Optimistically update local UI
+    setOptions((prev) =>
+      prev.map((o) =>
+        o.optionId === optionId
+          ? {
+              // Keep the same top‐level fields
+              ...o,
+              // Replace the `option` object with a new one that has count + 1
+              option: {
+                ...o.option,
+                count: o.option.count + 1,
+              },
+            }
+          : o,
+      ),
+    )
+
+    // 2) Send the POST to /api/vote
+    fetch('/api/vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pollId, optionId }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Vote failed')
+        return res.json()
+      })
+      .then(({ count: serverCount }) => {
+        // 3) Reconcile with server’s count (in case of mismatch)
+        setOptions((prev) =>
+          prev.map((o) =>
+            o.optionId === optionId
+              ? {
+                  ...o,
+                  option: {
+                    ...o.option,
+                    count: serverCount,
+                  },
+                }
+              : o,
+          ),
+        )
+      })
+      .catch((err) => {
+        console.error(err)
+        // If you want, re‐fetch the whole poll or roll back the optimistic update
+      })
+  }
+
   if (question === null && error === null) {
     return (
       <div className="text-center font-nunito">
@@ -56,6 +113,8 @@ export default function PollDetail() {
     return <div className="text-red-500">{error}</div>
   }
 
+  console.log(question)
+  console.log(options)
   return (
     <div className="text-center font-nunito">
       <header className="min-h-screen flex flex-col items-center mt-20 space-y-10 bg-white text-[#2D2C2B]">
@@ -64,9 +123,12 @@ export default function PollDetail() {
           <div className="w-full">
             <ul className="space-y-4 w-full">
               {options?.map((option) => (
-                <li className="w-full block w-full rounded-sm bg-[#F9F4F2] px-8 py-4 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#248aff] sm:text-sm/6 cursor-pointer transition-opacity duration-200 hover:opacity-50">
+                <li
+                  onClick={() => handleVote(option.optionId)}
+                  className="w-full block w-full rounded-sm bg-[#F9F4F2] px-8 py-4 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#248aff] sm:text-sm/6 cursor-pointer transition-opacity duration-200 hover:opacity-50"
+                >
                   <p className="text-[#2D2C2B] font-bold text-lg">
-                    {option.text.value}
+                    {option.option.value}
                   </p>
                 </li>
               ))}

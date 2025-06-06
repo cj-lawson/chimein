@@ -3,9 +3,9 @@ import { Redis } from '@upstash/redis'
 import { nanoid } from 'nanoid'
 
 type Option = {
-  id: number
+  id: string
   value: string
-  type: 'text'
+  count: number
 }
 
 const redis = new Redis({
@@ -28,7 +28,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   const pollId = nanoid()
 
-  const optionList = options?.map((o) => ({ optionId: nanoid(), text: o }))
+  const optionList = options?.map((o) => ({
+    optionId: nanoid(),
+    option: o,
+  }))
+
+  console.log(optionList)
   await redis.hset(`poll:${pollId}`, {
     question,
     options: JSON.stringify(optionList),
