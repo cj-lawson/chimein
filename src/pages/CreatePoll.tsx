@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import toast, { Toaster } from 'react-hot-toast'
+import logo from '/logo.svg'
 
 export default function CreatePoll() {
   const [question, setQuestion] = useState('')
@@ -50,17 +51,20 @@ export default function CreatePoll() {
         <Toaster position="bottom-center" />
       </div>
 
-      <div className="text-center">
-        <header className="min-h-screen flex flex-col items-center justify-center space-y-10 bg-[#121316] text-white text-[calc(10px+2vmin)]">
-          <div className="w-3/4 sm:w-1/2 md:max-w-[400px] space-y-16">
-            <h1>Create a poll</h1>
+      <div className="text-center bg-white text-[#2D2C2B] font-nunito">
+        <header className="min-h-screen flex flex-col items-center space-y-10">
+          <div className="w-3/4 sm:w-1/2 md:max-w-[400px] space-y-16 mt-20">
+            <img src={logo} alt="" className="ml-auto mr-auto" />
+            <h1 className="font-bold text-3xl">
+              Create your poll. <br></br>Share it with anyone.
+            </h1>
             <div>
               <input
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="Enter your question"
-                className="border-1 border-[#292A2D] block w-full rounded-full bg-[#1E1F22] px-8 py-4 text-base text-gray-200 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#248aff] sm:text-sm/6"
+                className="border-2 border-[#E2DED9] block w-full rounded-md bg-white px-8 py-4 text-lg text-[#2D2C2B] font-semibold placeholder:text-[#A8A5A0] focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#FE7119]"
               />
             </div>
             <div className="options space-y-4">
@@ -72,30 +76,32 @@ export default function CreatePoll() {
                     value={option.value}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
                     placeholder={`option ${index + 1}`}
-                    className="border-1 border-[#292A2D] block w-full rounded-full bg-[#1E1F22] px-8 py-4 text-base text-gray-200 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#248aff] sm:text-sm/6"
+                    className="border-2 border-[#E2DED9] block w-full rounded-md bg-white px-8 py-4 text-base font-semibold text-[#2D2C2B] placeholder:text-[#A8A5A0] focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#FE7119]"
                   />
                   <button
                     onClick={() => handleRemoveOption(option.id)}
                     className="flex items-center gap-4 ml-auto cursor-pointer"
                   >
-                    <XMarkIcon className="size-6 absolute top-1/2 transform -translate-y-1/2 ml-2" />
+                    <XMarkIcon className="text-[#2D2C2B] size-6 absolute top-1/2 transform -translate-y-1/2 ml-2" />
                   </button>
                 </div>
               ))}
               <div>
                 <button
                   onClick={() => handleAddOption()}
-                  className="flex items-center gap-2 ml-auto cursor-pointer"
+                  className="flex items-center gap-2 mr-auto cursor-pointer"
                 >
-                  <PlusIcon className="size-5" />
-                  <p className="text-sm">Add Option</p>
+                  <PlusIcon className="size-5 text-[#2D2C2B]" />
+                  <p className="text-sm font-semibold text-[#2D2C2B]">
+                    Add Option
+                  </p>
                 </button>
               </div>
             </div>
             <button
               onClick={handleCreate}
               disabled={!question.trim()}
-              className="cursor-pointer bg-[#248aff] rounded-full py-4 w-full align-items:center text-sm font-bold"
+              className="cursor-pointer bg-[#FF6719] rounded-full py-4 w-full align-items:center text-base font-extrabold text-white uppercase"
             >
               {' '}
               Create Poll
