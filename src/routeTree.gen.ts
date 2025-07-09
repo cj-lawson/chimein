@@ -8,11 +8,19 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-import { Route as PollPollIdImport } from './routes/poll/$pollId'
+import { Route as PollPollIdIndexImport } from './routes/poll/$pollId/index'
+import { Route as PollPollIdPreviewImport } from './routes/poll/$pollId/preview'
+import { Route as PollPollIdLayoutImport } from './routes/poll/$pollId/_layout'
+
+// Create Virtual Routes
+
+const PollPollIdImport = createFileRoute('/poll/$pollId')()
 
 // Create/Update Routes
 
@@ -26,6 +34,23 @@ const PollPollIdRoute = PollPollIdImport.update({
   id: '/poll/$pollId',
   path: '/poll/$pollId',
   getParentRoute: () => rootRoute,
+} as any)
+
+const PollPollIdIndexRoute = PollPollIdIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PollPollIdRoute,
+} as any)
+
+const PollPollIdPreviewRoute = PollPollIdPreviewImport.update({
+  id: '/preview',
+  path: '/preview',
+  getParentRoute: () => PollPollIdRoute,
+} as any)
+
+const PollPollIdLayoutRoute = PollPollIdLayoutImport.update({
+  id: '/_layout',
+  getParentRoute: () => PollPollIdRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -46,44 +71,93 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PollPollIdImport
       parentRoute: typeof rootRoute
     }
+    '/poll/$pollId/_layout': {
+      id: '/poll/$pollId/_layout'
+      path: '/poll/$pollId'
+      fullPath: '/poll/$pollId'
+      preLoaderRoute: typeof PollPollIdLayoutImport
+      parentRoute: typeof PollPollIdRoute
+    }
+    '/poll/$pollId/preview': {
+      id: '/poll/$pollId/preview'
+      path: '/preview'
+      fullPath: '/poll/$pollId/preview'
+      preLoaderRoute: typeof PollPollIdPreviewImport
+      parentRoute: typeof PollPollIdImport
+    }
+    '/poll/$pollId/': {
+      id: '/poll/$pollId/'
+      path: '/'
+      fullPath: '/poll/$pollId/'
+      preLoaderRoute: typeof PollPollIdIndexImport
+      parentRoute: typeof PollPollIdImport
+    }
   }
 }
 
 // Create and export the route tree
 
+interface PollPollIdRouteChildren {
+  PollPollIdLayoutRoute: typeof PollPollIdLayoutRoute
+  PollPollIdPreviewRoute: typeof PollPollIdPreviewRoute
+  PollPollIdIndexRoute: typeof PollPollIdIndexRoute
+}
+
+const PollPollIdRouteChildren: PollPollIdRouteChildren = {
+  PollPollIdLayoutRoute: PollPollIdLayoutRoute,
+  PollPollIdPreviewRoute: PollPollIdPreviewRoute,
+  PollPollIdIndexRoute: PollPollIdIndexRoute,
+}
+
+const PollPollIdRouteWithChildren = PollPollIdRoute._addFileChildren(
+  PollPollIdRouteChildren,
+)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/poll/$pollId': typeof PollPollIdRoute
+  '/poll/$pollId': typeof PollPollIdLayoutRoute
+  '/poll/$pollId/preview': typeof PollPollIdPreviewRoute
+  '/poll/$pollId/': typeof PollPollIdIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/poll/$pollId': typeof PollPollIdRoute
+  '/poll/$pollId': typeof PollPollIdIndexRoute
+  '/poll/$pollId/preview': typeof PollPollIdPreviewRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/poll/$pollId': typeof PollPollIdRoute
+  '/poll/$pollId': typeof PollPollIdRouteWithChildren
+  '/poll/$pollId/_layout': typeof PollPollIdLayoutRoute
+  '/poll/$pollId/preview': typeof PollPollIdPreviewRoute
+  '/poll/$pollId/': typeof PollPollIdIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/poll/$pollId'
+  fullPaths: '/' | '/poll/$pollId' | '/poll/$pollId/preview' | '/poll/$pollId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/poll/$pollId'
-  id: '__root__' | '/' | '/poll/$pollId'
+  to: '/' | '/poll/$pollId' | '/poll/$pollId/preview'
+  id:
+    | '__root__'
+    | '/'
+    | '/poll/$pollId'
+    | '/poll/$pollId/_layout'
+    | '/poll/$pollId/preview'
+    | '/poll/$pollId/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  PollPollIdRoute: typeof PollPollIdRoute
+  PollPollIdRoute: typeof PollPollIdRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  PollPollIdRoute: PollPollIdRoute,
+  PollPollIdRoute: PollPollIdRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -104,7 +178,24 @@ export const routeTree = rootRoute
       "filePath": "index.tsx"
     },
     "/poll/$pollId": {
-      "filePath": "poll/$pollId.tsx"
+      "filePath": "poll/$pollId",
+      "children": [
+        "/poll/$pollId/_layout",
+        "/poll/$pollId/preview",
+        "/poll/$pollId/"
+      ]
+    },
+    "/poll/$pollId/_layout": {
+      "filePath": "poll/$pollId/_layout.tsx",
+      "parent": "/poll/$pollId"
+    },
+    "/poll/$pollId/preview": {
+      "filePath": "poll/$pollId/preview.tsx",
+      "parent": "/poll/$pollId"
+    },
+    "/poll/$pollId/": {
+      "filePath": "poll/$pollId/index.tsx",
+      "parent": "/poll/$pollId"
     }
   }
 }

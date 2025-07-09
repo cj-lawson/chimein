@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import toast, { Toaster } from 'react-hot-toast'
@@ -7,6 +8,8 @@ import logo from '/tally-logo.svg'
 export default function CreatePoll() {
   const [question, setQuestion] = useState('')
   const [pollId, setPollId] = useState<string | null>(null)
+
+  const navigate = useNavigate()
 
   const [options, setOptions] = useState([
     { id: 1, value: '', type: 'text', count: 0 },
@@ -43,6 +46,7 @@ export default function CreatePoll() {
 
     const { pollId } = await res.json()
     setPollId(pollId)
+    navigate({ to: '/poll/$pollId/preview', params: { pollId } })
   }
 
   return (
@@ -109,7 +113,7 @@ export default function CreatePoll() {
 
             {pollId && (
               <p style={{ marginTop: 16 }}>
-                <a href={`/poll/${pollId}`}>👀 View your poll</a>
+                <a href={`/poll/${pollId}/preview`}>👀 View your poll</a>
               </p>
             )}
           </div>
