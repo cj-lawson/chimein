@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Route as PollRoute } from '@/routes/poll/$pollId'
+import { useMemo } from 'react'
+
+import Header from '@/components/Header'
+import {
+  markVoted,
+  getVotedOption,
+  clearVote,
+} from '../../utils/localVoteStore'
 
 type Option = {
   optionId: string
@@ -17,7 +25,16 @@ export default function PollDetail() {
   const { pollId } = PollRoute.useParams()
   const [question, setQuestion] = useState<string | null>(null)
   const [options, setOptions] = useState<Array<Option>>([])
+  const [picked, setPicked] = useState<string | null>(() =>
+    getVotedOption(pollId),
+  )
+
   const [error, setError] = useState<string | null>(null)
+
+  const totalVotes = useMemo(
+    () => options.reduce((sum, o) => sum + o.option.count, 0),
+    [options],
+  )
 
   useEffect(() => {
     if (!pollId) return
@@ -48,14 +65,15 @@ export default function PollDetail() {
   }
 
   function handleVote(optionId: string) {
-    // 1) Optimistically update local UI
+    if (picked) return
+
+    // Optimisit UI
     setOptions((prev) =>
       prev.map((o) =>
         o.optionId === optionId
           ? {
-              // Keep the same top‐level fields
               ...o,
-              // Replace the `option` object with a new one that has count + 1
+
               option: {
                 ...o.option,
                 count: o.option.count + 1,
@@ -64,6 +82,9 @@ export default function PollDetail() {
           : o,
       ),
     )
+
+    setPicked(optionId)
+    markVoted(pollId, optionId)
 
     // 2) Send the POST to /api/vote
     fetch('/api/vote', {
@@ -93,7 +114,9 @@ export default function PollDetail() {
       })
       .catch((err) => {
         console.error(err)
-        // If you want, re‐fetch the whole poll or roll back the optimistic update
+        setPicked(null)
+        clearVote(pollId)
+        setError('Vote failed, please try again.')
       })
   }
 
@@ -116,26 +139,39 @@ export default function PollDetail() {
   console.log(question)
   console.log(options)
   return (
-    <div className="text-center font-nunito">
-      <header className="min-h-screen flex flex-col items-center mt-20 space-y-10 bg-white text-[#2D2C2B]">
-        <div className="w-3/4 sm:w-1/2 md:max-w-[400px] space-y-16">
-          <h1 className="text-2xl font-bold">{question}</h1>
-          <div className="w-full">
-            <ul className="space-y-4 w-full">
-              {options?.map((option) => (
-                <li
-                  onClick={() => handleVote(option.optionId)}
-                  className="w-full block w-full rounded-sm bg-[#F9F4F2] px-8 py-4 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#248aff] sm:text-sm/6 cursor-pointer transition-opacity duration-200 hover:opacity-50"
-                >
-                  <p className="text-[#2D2C2B] font-bold text-lg">
-                    {option.option.value}
-                  </p>
-                </li>
-              ))}
-            </ul>
+    <>
+      <Header />
+      <div className="text-center font-nunito">
+        <header className="min-h-screen flex flex-col items-center mt-20 space-y-10 bg-white text-[#2D2C2B]">
+          <div className="w-3/4 sm:w-1/2 md:max-w-[400px] space-y-16">
+            <h1 className="text-2xl font-bold">{question}</h1>
+            <div className="w-full">
+              <ul className="space-y-4 w-full">
+                {options?.map((option) => (
+                  <li
+                    onClick={() => handleVote(option.optionId)}
+                    className={`w-full block w-full rounded-sm bg-[#F1F3F5] px-8 py-4 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#248aff] sm:text-sm/6 cursor-pointer transition-opacity duration-200 hover:opacity-50 ${picked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:opacity-50'}
+                    ${picked === option.optionId ? 'ring-2 ring-blue-500' : ''}
+                   `}
+                  >
+                    <p className="text-[#2D2C2B] font-bold text-lg">
+                      {option.option.value}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-12 w-full">
+                <div className="flex items-center gap-2 font-bold justify-center">
+                  <div className="h-3 w-3 bg-green-400 rounded-full"></div>
+                  <p>Live</p>
+                  <span>|</span>
+                  <p>{totalVotes} Votes</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </header>
-    </div>
+        </header>
+      </div>
+    </>
   )
 }

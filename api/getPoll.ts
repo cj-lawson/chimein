@@ -1,3 +1,4 @@
+// api/getPoll.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Redis } from '@upstash/redis'
 
@@ -13,19 +14,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const { id } = req.query as { id?: string }
-  if (!id) {
-    return res.status(400).json({ error: 'Missing poll id' })
-  }
+  if (!id) return res.status(400).json({ error: 'Missing poll id' })
 
   const meta = await redis.hgetall(`poll:${id}`)
+  if (!meta?.question) return res.status(404).json({ error: 'Poll not found' })
 
-  if (!meta?.question) {
-    return res.status(404).json({ error: 'Poll not found' })
+  // ---------- votes hash ----------
+  const rawVotes = await redis.hgetall<Record<string, string>>(
+    `poll:${id}:votes`,
+  )
+  const votes: Record<string, string> = rawVotes ?? {}
+
+  // ---------- parse options safely ----------
+  let parsed: {
+    optionId: string
+    option: { id: string; type: 'text'; value: string; count: number }
+  }[]
+
+  if (typeof meta.options === 'string') {
+    try {
+      parsed = JSON.parse(meta.options)
+    } catch {
+      console.warn(`poll:${id} has corrupt JSON, returning empty list`)
+      parsed = []
+    }
+  } else if (Array.isArray(meta.options)) {
+    // Already an array – just use it
+    parsed = meta.options
+  } else {
+    parsed = []
   }
 
-  console.log(meta.options)
+  // ---------- merge counts ----------
+  const options = parsed.map((o) => ({
+    ...o,
+    option: {
+      ...o.option,
+      count: parseInt(votes[o.optionId] ?? '0', 10),
+    },
+  }))
 
-  return res
-    .status(200)
-    .json({ question: meta.question, options: meta.options })
+  return res.status(200).json({ question: meta.question, options })
 }

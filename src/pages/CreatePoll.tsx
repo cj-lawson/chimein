@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 import { PlusIcon, XMarkIcon } from '@heroicons/react/24/solid'
 import toast, { Toaster } from 'react-hot-toast'
-import logo from '/logo.svg'
+import logo from '/tally-logo.svg'
 
 export default function CreatePoll() {
   const [question, setQuestion] = useState('')
@@ -51,7 +51,7 @@ export default function CreatePoll() {
         <Toaster position="bottom-center" />
       </div>
 
-      <div className="text-center bg-white text-[#2D2C2B] font-nunito">
+      <div className="text-center bg-white text-[#131B24] font-nunito">
         <header className="min-h-screen flex flex-col items-center space-y-10">
           <div className="w-3/4 sm:w-1/2 md:max-w-[400px] space-y-16 mt-20">
             <img src={logo} alt="" className="ml-auto mr-auto" />
@@ -64,7 +64,7 @@ export default function CreatePoll() {
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="Enter your question"
-                className="border-2 border-[#E2DED9] block w-full rounded-md bg-white px-8 py-4 text-lg text-[#2D2C2B] font-semibold placeholder:text-[#A8A5A0] focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#FE7119]"
+                className="block w-full rounded-xl bg-[#F1F3F5] px-8 py-4 text-lg text-[#2D2C2B] font-semibold placeholder:text-[#657481] focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#2C55D9]"
               />
             </div>
             <div className="options space-y-4">
@@ -76,7 +76,7 @@ export default function CreatePoll() {
                     value={option.value}
                     onChange={(e) => handleOptionChange(index, e.target.value)}
                     placeholder={`option ${index + 1}`}
-                    className="border-2 border-[#E2DED9] block w-full rounded-md bg-white px-8 py-4 text-base font-semibold text-[#2D2C2B] placeholder:text-[#A8A5A0] focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#FE7119]"
+                    className=" block w-full rounded-xl bg-[#F1F3F5] px-8 py-4 text-base font-semibold text-[#2D2C2B] placeholder:text-[#657481] focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#2C55D9]"
                   />
                   <button
                     onClick={() => handleRemoveOption(option.id)}
@@ -101,7 +101,7 @@ export default function CreatePoll() {
             <button
               onClick={handleCreate}
               disabled={!question.trim()}
-              className="cursor-pointer bg-[#FF6719] rounded-full py-4 w-full align-items:center text-base font-extrabold text-white uppercase"
+              className="cursor-pointer bg-[#2C55D9] rounded-lg py-4 w-full align-items:center text-base font-extrabold text-white uppercase"
             >
               {' '}
               Create Poll
