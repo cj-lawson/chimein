@@ -164,14 +164,14 @@ export default function PollDetail() {
                       <li
                         key={optionId}
                         onClick={() => handleVote(optionId)}
-                        className={`relative rounded-sm bg-[#F1F3F5] text-[#131B24] px-8 py-4
-            ${picked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:opacity-60'}
-            ${picked === optionId ? 'text-[#131B24] opacity-99' : ''}`}
+                        className={`relative rounded-sm px-8 py-4
+            ${picked ? 'cursor-not-allowed opacity-50 ' : 'cursor-pointer hover:opacity-60'}
+            ${picked === optionId ? 'opacity-99 text-white bg-[#7590E6]' : 'text-[#020202] bg-[#F2F2F2]'}`}
                       >
                         {/* animated bar—zero width until revealResults is true */}
                         <motion.div
                           layout
-                          className={`absolute inset-0 rounded-sm -z-10 ${picked && optionId === picked ? 'bg-blue-300' : 'bg-[#D1E9FF]'}`}
+                          className={`absolute inset-0 rounded-sm -z-10 ${picked && optionId === picked ? 'bg-[#2C55D9]' : 'bg-[#C2C2C2]'}`}
                           initial={{ width: 0 }}
                           animate={{ width: revealResults ? `${perc}%` : 0 }}
                           transition={{
@@ -185,7 +185,9 @@ export default function PollDetail() {
                         <div className="flex justify-between items-center relative">
                           <p className="font-bold">{option.value}</p>
                           {revealResults && (
-                            <span className="text-sm font-extrabold text-gray-600">
+                            <span
+                              className={`text-sm font-extrabold text-gray-600 ${picked && optionId === picked ? 'text-white' : ''}`}
+                            >
                               ({perc.toFixed(0)}%)
                             </span>
                           )}

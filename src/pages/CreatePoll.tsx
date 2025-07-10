@@ -105,7 +105,7 @@ export default function CreatePoll() {
             <button
               onClick={handleCreate}
               disabled={!question.trim()}
-              className="cursor-pointer bg-[#2C55D9] rounded-lg py-4 w-full align-items:center text-base font-extrabold text-white uppercase"
+              className="cursor-pointer bg-[#2C55D9] rounded-lg py-4 w-full align-items:center text-base font-extrabold text-white uppercase mb-2"
             >
               {' '}
               Create Poll
