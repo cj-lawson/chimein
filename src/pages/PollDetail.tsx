@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Route as PollRoute } from '@/routes/poll/$pollId'
 import { useMemo } from 'react'
+import { motion, LayoutGroup } from 'framer-motion'
 
 import Header from '@/components/Header'
 import {
@@ -35,6 +36,15 @@ export default function PollDetail() {
     () => options.reduce((sum, o) => sum + o.option.count, 0),
     [options],
   )
+
+  const revealResults = picked !== null
+  const percById = useMemo(() => {
+    if (!revealResults) return {} // nothing to reveal yet
+    const t = totalVotes || 1
+    return Object.fromEntries(
+      options.map((o) => [o.optionId, (o.option.count / t) * 100]),
+    )
+  }, [options, totalVotes, revealResults])
 
   useEffect(() => {
     if (!pollId) return
@@ -146,20 +156,46 @@ export default function PollDetail() {
           <div className="w-3/4 sm:w-1/2 md:max-w-[400px] space-y-16">
             <h1 className="text-2xl font-bold">{question}</h1>
             <div className="w-full">
-              <ul className="space-y-4 w-full">
-                {options?.map((option) => (
-                  <li
-                    onClick={() => handleVote(option.optionId)}
-                    className={`w-full block w-full rounded-sm bg-[#F1F3F5] px-8 py-4 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-[#248aff] sm:text-sm/6 cursor-pointer transition-opacity duration-200 hover:opacity-50 ${picked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:opacity-50'}
-                    ${picked === option.optionId ? 'ring-2 ring-blue-500' : ''}
-                   `}
-                  >
-                    <p className="text-[#2D2C2B] font-bold text-lg">
-                      {option.option.value}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+              <LayoutGroup>
+                <ul className="space-y-4 w-full">
+                  {options.map(({ optionId, option }) => {
+                    const perc = percById[optionId] ?? 0 // 0 until reveal
+                    return (
+                      <li
+                        key={optionId}
+                        onClick={() => handleVote(optionId)}
+                        className={`relative rounded-sm bg-[#F1F3F5] text-[#131B24] px-8 py-4
+            ${picked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:opacity-60'}
+            ${picked === optionId ? 'text-[#131B24] opacity-99' : ''}`}
+                      >
+                        {/* animated bar—zero width until revealResults is true */}
+                        <motion.div
+                          layout
+                          className={`absolute inset-0 rounded-sm -z-10 ${picked && optionId === picked ? 'bg-blue-300' : 'bg-[#D1E9FF]'}`}
+                          initial={{ width: 0 }}
+                          animate={{ width: revealResults ? `${perc}%` : 0 }}
+                          transition={{
+                            type: 'spring',
+                            stiffness: 260,
+                            damping: 30,
+                          }}
+                        />
+
+                        {/* label & count */}
+                        <div className="flex justify-between items-center relative">
+                          <p className="font-bold">{option.value}</p>
+                          {revealResults && (
+                            <span className="text-sm text-gray-600">
+                              ({perc.toFixed(0)}%)
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </LayoutGroup>
+
               <div className="mt-12 w-full">
                 <div className="flex items-center gap-2 font-bold justify-center">
                   <div className="h-3 w-3 bg-green-400 rounded-full"></div>
