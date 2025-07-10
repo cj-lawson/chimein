@@ -57,7 +57,7 @@ export default function CreatePoll() {
 
       <div className="text-center bg-white text-[#131B24] font-nunito max-h-dvh">
         <div className="min-h-screen flex flex-col items-center space-y-2 max-h-dvh">
-          <div className="w-3/4 sm:w-1/2 md:max-w-[400px] space-y-12 mt-10 max-h-dvh">
+          <div className="w-4/5 sm:w-1/2 md:max-w-[400px] space-y-12 mt-10 max-h-dvh">
             <img src={logo} alt="" className="ml-auto mr-auto" />
             <h1 className="font-bold text-3xl">
               Create your poll. <br></br>Share it with anyone.
@@ -86,7 +86,7 @@ export default function CreatePoll() {
                     onClick={() => handleRemoveOption(option.id)}
                     className="flex items-center gap-4 ml-auto cursor-pointer"
                   >
-                    <XMarkIcon className="text-[#2D2C2B] size-6 absolute top-1/2 transform -translate-y-1/2 ml-2" />
+                    <XMarkIcon className="text-[#2D2C2B] size-6 absolute top-1/2 transform -translate-y-1/2 ml-1" />
                   </button>
                 </div>
               ))}
