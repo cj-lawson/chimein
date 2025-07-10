@@ -185,7 +185,7 @@ export default function PollDetail() {
                         <div className="flex justify-between items-center relative">
                           <p className="font-bold">{option.value}</p>
                           {revealResults && (
-                            <span className="text-sm text-gray-600">
+                            <span className="text-sm font-extrabold text-gray-600">
                               ({perc.toFixed(0)}%)
                             </span>
                           )}
