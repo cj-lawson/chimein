@@ -200,7 +200,11 @@ export default function PollDetail() {
 
               <div className="mt-12 w-full">
                 <div className="flex items-center gap-2 font-bold justify-center">
-                  <div className="h-3 w-3 bg-green-400 rounded-full"></div>
+                  <span className="relative flex size-3">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex size-3 rounded-full bg-green-500"></span>
+                  </span>
+
                   <p>Live</p>
                   <span>|</span>
                   <p>{totalVotes} Votes</p>
