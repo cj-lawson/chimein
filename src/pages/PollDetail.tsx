@@ -39,7 +39,7 @@ export default function PollDetail() {
 
   const revealResults = picked !== null
   const percById = useMemo(() => {
-    if (!revealResults) return {} // nothing to reveal yet
+    if (!revealResults) return {}
     const t = totalVotes || 1
     return Object.fromEntries(
       options.map((o) => [o.optionId, (o.option.count / t) * 100]),
@@ -49,7 +49,6 @@ export default function PollDetail() {
   useEffect(() => {
     if (!pollId) return
 
-    // reset states on pollId change
     setQuestion(null)
     setOptions([])
     setError(null)
@@ -69,7 +68,6 @@ export default function PollDetail() {
       })
   }, [pollId])
 
-  // Handle missing pollId (should never happen if router is correct)
   if (!pollId) {
     return <div>Invalid poll ID.</div>
   }
@@ -96,7 +94,6 @@ export default function PollDetail() {
     setPicked(optionId)
     markVoted(pollId, optionId)
 
-    // 2) Send the POST to /api/vote
     fetch('/api/vote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -107,7 +104,7 @@ export default function PollDetail() {
         return res.json()
       })
       .then(({ count: serverCount }) => {
-        // 3) Reconcile with server’s count (in case of mismatch)
+        // Reconcile with server’s count (in case of mismatch)
         setOptions((prev) =>
           prev.map((o) =>
             o.optionId === optionId
