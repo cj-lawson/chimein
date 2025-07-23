@@ -1,6 +1,18 @@
-import { useEffect } from 'react'
+// src/hooks/usePollStream.ts
+import { useEffect, useRef } from 'react'
 
-export function usePollStream(pollId: string, onMessage: (evt: any) => void) {
+export type VoteEvent = {
+  optionId: string
+  count: number
+  totalVotes?: number
+}
+
+type OnMsg = (evt: VoteEvent) => void
+
+export function usePollStream(pollId: string | undefined, onMessage: OnMsg) {
+  const cbRef = useRef(onMessage)
+  cbRef.current = onMessage
+
   useEffect(() => {
     if (!pollId) return
 
@@ -8,16 +20,18 @@ export function usePollStream(pollId: string, onMessage: (evt: any) => void) {
 
     es.onmessage = (e) => {
       try {
-        onMessage(JSON.parse(e.data))
+        const data = JSON.parse(e.data) as VoteEvent
+        cbRef.current(data)
       } catch {
-        console.warn('Bad JSON from strea', e.data)
+        console.warn('Bad SSE data:', e.data)
       }
     }
 
     es.onerror = (err) => {
       console.error('SSE error', err)
+      // EventSource auto-reconnects. Optional: show UI state.
     }
 
     return () => es.close()
-  }, [pollId, onMessage])
+  }, [pollId])
 }

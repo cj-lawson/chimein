@@ -1,19 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Route as PollRoute } from '@/routes/poll/$pollId'
-import { useMemo } from 'react'
 import { motion, LayoutGroup } from 'framer-motion'
-
 import Header from '@/components/Header'
 import {
   markVoted,
   getVotedOption,
   clearVote,
 } from '../../utils/localVoteStore'
-
-type Option = {
-  optionId: string
-  option: OptionValues
-}
+import { usePollStream, VoteEvent } from '@/hooks/usePollStream'
 
 type OptionValues = {
   id: string
@@ -21,21 +15,17 @@ type OptionValues = {
   value: string
   count: number
 }
+type Option = { optionId: string; option: OptionValues }
 
 export default function PollDetail() {
   const { pollId } = PollRoute.useParams()
   const [question, setQuestion] = useState<string | null>(null)
-  const [options, setOptions] = useState<Array<Option>>([])
+  const [options, setOptions] = useState<Option[]>([])
+  const [totalVotes, setTotalVotes] = useState(0)
   const [picked, setPicked] = useState<string | null>(() =>
     getVotedOption(pollId),
   )
-
   const [error, setError] = useState<string | null>(null)
-
-  const totalVotes = useMemo(
-    () => options.reduce((sum, o) => sum + o.option.count, 0),
-    [options],
-  )
 
   const revealResults = picked !== null
   const percById = useMemo(() => {
@@ -46,9 +36,9 @@ export default function PollDetail() {
     )
   }, [options, totalVotes, revealResults])
 
+  // --- initial fetch ---
   useEffect(() => {
     if (!pollId) return
-
     setQuestion(null)
     setOptions([])
     setError(null)
@@ -58,38 +48,55 @@ export default function PollDetail() {
         if (!res.ok) throw new Error(res.statusText)
         return res.json()
       })
-      .then((data: { question: string; options: Array<Option> }) => {
-        setQuestion(data.question)
-        setOptions(data.options)
-      })
-      .catch((err: Error) => {
+      .then(
+        (data: { question: string; options: Option[]; totalVotes: number }) => {
+          setQuestion(data.question)
+          setOptions(data.options)
+          setTotalVotes(data.totalVotes) // <-- NEW
+          console.log(data)
+        },
+      )
+
+      .catch((err) => {
         console.error(err)
         setError('Failed to load poll.')
       })
   }, [pollId])
 
-  if (!pollId) {
-    return <div>Invalid poll ID.</div>
-  }
+  // --- real-time updates (SSE) ---
+  const handleServerVote = useCallback(
+    ({ optionId, count, totalVotes: serverTotal }: VoteEvent) => {
+      setOptions((prev) =>
+        prev.map((o) =>
+          o.optionId === optionId
+            ? { ...o, option: { ...o.option, count } }
+            : o,
+        ),
+      )
+      if (typeof serverTotal === 'number') setTotalVotes(serverTotal)
+    },
+    [],
+  )
 
+  // usePollStream(pollId, handleServerVote)
+  usePollStream(pollId, (msg) => {
+    console.log('SSE msg', msg)
+    handleServerVote(msg)
+  })
+
+  // --- vote handler (optimistic) ---
   function handleVote(optionId: string) {
     if (picked) return
 
-    // Optimisit UI
+    // optimistic local increments
     setOptions((prev) =>
       prev.map((o) =>
         o.optionId === optionId
-          ? {
-              ...o,
-
-              option: {
-                ...o.option,
-                count: o.option.count + 1,
-              },
-            }
+          ? { ...o, option: { ...o.option, count: o.option.count + 1 } }
           : o,
       ),
     )
+    setTotalVotes((t) => t + 1) // <-- NEW
 
     setPicked(optionId)
     markVoted(pollId, optionId)
@@ -103,21 +110,15 @@ export default function PollDetail() {
         if (!res.ok) throw new Error('Vote failed')
         return res.json()
       })
-      .then(({ count: serverCount }) => {
-        // Reconcile with server’s count (in case of mismatch)
+      .then(({ count: serverCount, totalVotes: serverTotal }) => {
         setOptions((prev) =>
           prev.map((o) =>
             o.optionId === optionId
-              ? {
-                  ...o,
-                  option: {
-                    ...o.option,
-                    count: serverCount,
-                  },
-                }
+              ? { ...o, option: { ...o.option, count: serverCount } }
               : o,
           ),
         )
+        if (typeof serverTotal === 'number') setTotalVotes(serverTotal)
       })
       .catch((err) => {
         console.error(err)
@@ -126,6 +127,8 @@ export default function PollDetail() {
         setError('Vote failed, please try again.')
       })
   }
+
+  if (!pollId) return <div>Invalid poll ID.</div>
 
   if (question === null && error === null) {
     return (
@@ -139,12 +142,8 @@ export default function PollDetail() {
     )
   }
 
-  if (error) {
-    return <div className="text-red-500">{error}</div>
-  }
+  if (error) return <div className="text-red-500">{error}</div>
 
-  console.log(question)
-  console.log(options)
   return (
     <>
       <Header />
@@ -156,19 +155,19 @@ export default function PollDetail() {
               <LayoutGroup>
                 <ul className="space-y-4 w-full">
                   {options.map(({ optionId, option }) => {
-                    const perc = percById[optionId] ?? 0 // 0 until reveal
+                    const perc = percById[optionId] ?? 0
+                    const isPicked = picked === optionId
                     return (
                       <li
                         key={optionId}
                         onClick={() => handleVote(optionId)}
                         className={`relative rounded-sm px-8 py-4
-            ${picked ? 'cursor-not-allowed opacity-50 ' : 'cursor-pointer hover:opacity-60'}
-            ${picked === optionId ? 'opacity-99 text-white bg-[#7590E6]' : 'text-[#020202] bg-[#F2F2F2]'}`}
+                          ${picked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:opacity-60'}
+                          ${isPicked ? 'opacity-99 text-white bg-[#7590E6]' : 'text-[#020202] bg-[#F2F2F2]'}`}
                       >
-                        {/* animated bar—zero width until revealResults is true */}
                         <motion.div
                           layout
-                          className={`absolute inset-0 rounded-sm -z-10 ${picked && optionId === picked ? 'bg-[#2C55D9]' : 'bg-[#C2C2C2]'}`}
+                          className={`absolute inset-0 rounded-sm -z-10 ${isPicked ? 'bg-[#2C55D9]' : 'bg-[#C2C2C2]'}`}
                           initial={{ width: 0 }}
                           animate={{ width: revealResults ? `${perc}%` : 0 }}
                           transition={{
@@ -177,13 +176,12 @@ export default function PollDetail() {
                             damping: 30,
                           }}
                         />
-
-                        {/* label & count */}
                         <div className="flex justify-between items-center relative">
                           <p className="font-bold">{option.value}</p>
+
                           {revealResults && (
                             <span
-                              className={`text-sm font-extrabold text-gray-600 ${picked && optionId === picked ? 'text-white' : ''}`}
+                              className={`text-sm font-extrabold ${isPicked ? 'text-white' : 'text-gray-600'}`}
                             >
                               ({perc.toFixed(0)}%)
                             </span>
@@ -198,10 +196,9 @@ export default function PollDetail() {
               <div className="mt-12 w-full">
                 <div className="flex items-center gap-2 font-bold justify-center">
                   <span className="relative flex size-3">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex size-3 rounded-full bg-green-500"></span>
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                    <span className="relative inline-flex size-3 rounded-full bg-green-500" />
                   </span>
-
                   <p>Live</p>
                   <span>|</span>
                   <p>{totalVotes} Votes</p>

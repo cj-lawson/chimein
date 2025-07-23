@@ -10,7 +10,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const pollId = req.query.id as string
   if (!pollId) return res.status(400).end('Missing id')
 
-  // SSE Headers
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -18,20 +17,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   })
 
   const channel = `poll:${pollId}`
-  const sub = redis.subscribe(channel)
+  let alive = true
+  let sub: any
 
-  //   Send keep-alive pin every ~25s so proxies don't kill stream
-  const ping = setInterval(() => res.write(':\n\n'), 25_000)
+  const ping = setInterval(() => alive && res.write(':\n\n'), 25_000)
 
-  sub.on(`message:${channel}`, (evt) => {
-    res.write(`data: ${evt.message}\n\n`)
-  })
+  const start = () => {
+    sub = redis.subscribe(channel)
 
-  //   Cleanup on client disconnect
+    sub.on(`message:${channel}`, (evt: any) => {
+      if (!alive) return
+      res.write(`data: ${evt.message}\n\n`)
+    })
+
+    sub.on('error', async (err: unknown) => {
+      console.error('Stream reading error:', err)
+      try {
+        await sub.unsubscribe([channel])
+      } catch {}
+      sub.removeAllListeners()
+      if (alive) setTimeout(start, 1000) // retry
+    })
+  }
+
+  start()
+
   req.on('close', async () => {
+    alive = false
     clearInterval(ping)
-    await sub.unsubscribe([channel])
-    sub.removeAllListeners()
+    try {
+      await sub?.unsubscribe([channel])
+    } catch {}
+    sub?.removeAllListeners?.()
     res.end()
   })
 }

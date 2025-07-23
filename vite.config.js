@@ -14,12 +14,12 @@ export default defineConfig({
   ],
 
   server: {
-    port: 3000, // your React app
+    port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001', // where vercel dev will run
+        target: 'http://localhost:3001',
         changeOrigin: true,
-        rewrite: (path) => path, // keep /api/... intact
+        rewrite: (path) => path,
       },
     },
   },
