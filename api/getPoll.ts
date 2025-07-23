@@ -1,4 +1,3 @@
-// api/getPoll.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Redis } from '@upstash/redis'
 
@@ -28,7 +27,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // ---------- parse options safely ----------
   let parsed: {
     optionId: string
-    option: { id: string; type: 'text'; value: string; count: number }
+    option: {
+      id: string
+      type: 'text'
+      value: string
+      count: number
+      totalVotes: number
+    }
   }[]
 
   if (typeof meta.options === 'string') {
@@ -54,5 +59,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     },
   }))
 
-  return res.status(200).json({ question: meta.question, options })
+  const rawTotal = await redis.hget(`poll:${id}:meta`, 'totalVotes')
+  const totalVotes = rawTotal
+    ? parseInt(rawTotal.toString(), 10)
+    : options.reduce((s, o) => s + o.option.count, 0)
+
+  return res.status(200).json({ question: meta.question, options, totalVotes })
 }

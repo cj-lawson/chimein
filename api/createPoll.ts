@@ -21,14 +21,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     options?: ClientOption[]
   }
 
-  // single guard covers both
   if (!question || !options?.length) {
     return res.status(400).json({ error: 'Missing question or options' })
   }
 
   const pollId = nanoid()
 
-  // no optional-chaining here because we already know options exists
   const optionList = options.map(({ value }) => {
     const optionId = nanoid()
     return {
@@ -37,16 +35,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   })
 
-  // votes hash  { optionId: 0, … }
   const votesInit = Object.fromEntries(optionList.map((o) => [o.optionId, 0]))
 
   await redis
     .pipeline()
     .hset(`poll:${pollId}`, {
       question,
-      options: JSON.stringify(optionList), // <-- valid JSON string
+      options: JSON.stringify(optionList),
     })
     .hset(`poll:${pollId}:votes`, votesInit)
+    .hset(`poll:${pollId}:meta`, { totalVotes: 0 })
     .exec()
 
   return res.status(201).json({ pollId })
