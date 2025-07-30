@@ -1,4 +1,3 @@
-// api/stream-edge.ts
 import { Redis } from '@upstash/redis'
 
 // Explicitly use Edge runtime
