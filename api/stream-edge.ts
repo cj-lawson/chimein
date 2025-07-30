@@ -1,3 +1,4 @@
+// api/stream-edge.ts
 import { Redis } from '@upstash/redis'
 
 // Explicitly use Edge runtime
@@ -116,7 +117,9 @@ export default async function handler(request: Request) {
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Cache-Control',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Cache-Control, Content-Type',
+      'Access-Control-Max-Age': '86400',
     },
   })
 }
