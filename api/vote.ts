@@ -1,3 +1,4 @@
+//vote.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Redis } from '@upstash/redis'
 
@@ -8,6 +9,13 @@ const redis = new Redis({
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
+    // Debug logging for production
+    console.log('Environment check:', {
+      hasRedisUrl: !!process.env.UPSTASH_REDIS_URL,
+      hasRedisToken: !!process.env.UPSTASH_REDIS_TOKEN,
+      nodeEnv: process.env.NODE_ENV,
+    })
+
     if (req.method !== 'POST') {
       res.setHeader('Allow', 'POST')
       return res.status(405).json({ error: 'Method Not Allowed' })
