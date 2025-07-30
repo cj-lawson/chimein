@@ -31,7 +31,8 @@ export function usePollStream(
       console.log(`Connecting to SSE for poll: ${pollId}`)
       setConnectionState('connecting')
 
-      const url = `${base}/api/stream?id=${pollId}`
+      // Use Edge-compatible stream
+      const url = `${base}/api/stream-edge?id=${pollId}`
       const es = new EventSource(url)
       eventSourceRef.current = es
 
@@ -46,9 +47,13 @@ export function usePollStream(
       }
 
       es.onmessage = (e) => {
-        console.log('SSE message received:', e.data)
+        console.log('SSE raw event received:', e)
+        console.log('SSE data:', e.data)
+        console.log('SSE type:', e.type)
+
         try {
           const data = JSON.parse(e.data) as VoteEvent
+          console.log('Parsed SSE data:', data)
           cbRef.current(data)
         } catch (err) {
           console.warn('Failed to parse SSE data:', e.data, err)

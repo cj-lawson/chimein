@@ -1,4 +1,3 @@
-//PollDetail.tsx
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Route as PollRoute } from '@/routes/poll/$pollId'
 import { motion, LayoutGroup } from 'framer-motion'
@@ -37,7 +36,6 @@ export default function PollDetail() {
     )
   }, [options, totalVotes, revealResults])
 
-  // --- initial fetch ---
   useEffect(() => {
     if (!pollId) return
     setQuestion(null)
@@ -53,11 +51,10 @@ export default function PollDetail() {
         (data: { question: string; options: Option[]; totalVotes: number }) => {
           setQuestion(data.question)
           setOptions(data.options)
-          setTotalVotes(data.totalVotes) // <-- NEW
-          console.log(data)
+          setTotalVotes(data.totalVotes)
+          console.log('Initial poll data:', data)
         },
       )
-
       .catch((err) => {
         console.error(err)
         setError('Failed to load poll.')
@@ -67,29 +64,35 @@ export default function PollDetail() {
   // --- real-time updates (SSE) ---
   const handleServerVote = useCallback(
     ({ optionId, count, totalVotes: serverTotal }: VoteEvent) => {
-      if (typeof serverTotal === 'number') setTotalVotes(serverTotal)
+      console.log('Handling server vote:', { optionId, count, serverTotal })
 
-      setOptions((prev) =>
-        prev.map((o) =>
+      setOptions((prev) => {
+        const updated = prev.map((o) =>
           o.optionId === optionId
             ? { ...o, option: { ...o.option, count } }
             : o,
-        ),
-      )
-      if (typeof serverTotal === 'number') setTotalVotes(serverTotal)
+        )
+        console.log('Updated options:', updated)
+        return updated
+      })
+
+      if (typeof serverTotal === 'number') {
+        console.log('Updating total votes to:', serverTotal)
+        setTotalVotes(serverTotal)
+      }
     },
     [],
   )
 
-  // usePollStream(pollId, handleServerVote)
-  usePollStream(pollId, (msg) => {
-    console.log('SSE msg', msg)
+  const connectionState = usePollStream(pollId, (msg) => {
+    console.log('SSE message received in component:', msg)
     handleServerVote(msg)
   })
 
-  // --- vote handler (optimistic) ---
   function handleVote(optionId: string) {
     if (picked) return
+
+    console.log('Voting for option:', optionId)
 
     // optimistic local increments
     setOptions((prev) =>
@@ -99,7 +102,7 @@ export default function PollDetail() {
           : o,
       ),
     )
-    setTotalVotes((t) => t + 1) // <-- NEW
+    setTotalVotes((t) => t + 1)
 
     setPicked(optionId)
     markVoted(pollId, optionId)
@@ -113,7 +116,8 @@ export default function PollDetail() {
         if (!res.ok) throw new Error('Vote failed')
         return res.json()
       })
-      .then(({ count: serverCount, totalVotes: serverTotal }) => {
+      .then(({ count: serverCount, totalVotes: serverTotal, delivered }) => {
+        console.log('Vote response:', { serverCount, serverTotal, delivered })
         setOptions((prev) =>
           prev.map((o) =>
             o.optionId === optionId
@@ -124,7 +128,7 @@ export default function PollDetail() {
         if (typeof serverTotal === 'number') setTotalVotes(serverTotal)
       })
       .catch((err) => {
-        console.error(err)
+        console.error('Vote error:', err)
         setPicked(null)
         clearVote(pollId)
         setError('Vote failed, please try again.')
@@ -199,10 +203,32 @@ export default function PollDetail() {
               <div className="mt-12 w-full">
                 <div className="flex items-center gap-2 font-bold justify-center">
                   <span className="relative flex size-3">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-                    <span className="relative inline-flex size-3 rounded-full bg-green-500" />
+                    <span
+                      className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
+                        connectionState === 'connected'
+                          ? 'bg-green-400'
+                          : connectionState === 'connecting'
+                            ? 'bg-yellow-400'
+                            : 'bg-red-400'
+                      }`}
+                    />
+                    <span
+                      className={`relative inline-flex size-3 rounded-full ${
+                        connectionState === 'connected'
+                          ? 'bg-green-500'
+                          : connectionState === 'connecting'
+                            ? 'bg-yellow-500'
+                            : 'bg-red-500'
+                      }`}
+                    />
                   </span>
-                  <p>Live</p>
+                  <p>
+                    {connectionState === 'connected'
+                      ? 'Live'
+                      : connectionState === 'connecting'
+                        ? 'Connecting'
+                        : 'Offline'}
+                  </p>
                   <span>|</span>
                   <p>{totalVotes} Votes</p>
                 </div>
