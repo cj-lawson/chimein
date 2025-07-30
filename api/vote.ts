@@ -1,3 +1,4 @@
+//vote.ts
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { Redis } from '@upstash/redis'
 
@@ -33,10 +34,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Publish the updated count for real-time listeners
     // Clients subscribed to "poll:{pollId}" via SSE or WebSockets will receive this.
-    await redis.publish(
+    const delivered = await redis.publish(
       `poll:${pollId}`,
       JSON.stringify({ optionId, count: newCount, totalVotes: newTotal }),
     )
+
+    console.log('published to', delivered, 'subscribers')
 
     return res
       .status(200)

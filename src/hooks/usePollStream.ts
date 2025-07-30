@@ -8,15 +8,18 @@ export type VoteEvent = {
 }
 
 type OnMsg = (evt: VoteEvent) => void
-
-export function usePollStream(pollId: string | undefined, onMessage: OnMsg) {
+export function usePollStream(
+  pollId: string | undefined,
+  onMessage: (evt: VoteEvent) => void,
+  base = '',
+) {
   const cbRef = useRef(onMessage)
   cbRef.current = onMessage
 
   useEffect(() => {
     if (!pollId) return
-
-    const es = new EventSource(`/api/stream?id=${pollId}`)
+    const url = `${base}/api/stream?id=${pollId}`
+    const es = new EventSource(url)
 
     es.onmessage = (e) => {
       try {
@@ -29,9 +32,8 @@ export function usePollStream(pollId: string | undefined, onMessage: OnMsg) {
 
     es.onerror = (err) => {
       console.error('SSE error', err)
-      // EventSource auto-reconnects. Optional: show UI state.
     }
 
     return () => es.close()
-  }, [pollId])
+  }, [pollId, base])
 }

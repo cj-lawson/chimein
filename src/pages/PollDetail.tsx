@@ -1,3 +1,4 @@
+//PollDetail.tsx
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Route as PollRoute } from '@/routes/poll/$pollId'
 import { motion, LayoutGroup } from 'framer-motion'
@@ -66,6 +67,8 @@ export default function PollDetail() {
   // --- real-time updates (SSE) ---
   const handleServerVote = useCallback(
     ({ optionId, count, totalVotes: serverTotal }: VoteEvent) => {
+      if (typeof serverTotal === 'number') setTotalVotes(serverTotal)
+
       setOptions((prev) =>
         prev.map((o) =>
           o.optionId === optionId
